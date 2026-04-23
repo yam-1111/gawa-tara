@@ -1,0 +1,54 @@
+"use client"
+
+import { createClient } from "@/lib/supabase/client"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { GoogleIcon } from "@/components/ui/google-icon"
+import { TOSDialog } from "@/components/auth/tos"
+
+export default function LoginPage() {
+  const supabase = createClient()
+
+  const handleLogin = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback`,
+      },
+    })
+  }
+
+  return (
+    <main className="min-h-screen bg-background flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Decorative background glows */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/10 rounded-full blur-[120px]" />
+
+      <Card className="w-full max-w-md p-10 space-y-8 text-center backdrop-blur-xl bg-card/40 shadow-2xl border-white/20 dark:border-white/10 relative z-10">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-heading font-bold text-primary">Welcome back</h1>
+          <p className="text-muted-foreground font-body">Continue your planning journey</p>
+        </div>
+
+        <Button 
+          variant="outline" 
+          size="lg" 
+          className="w-full h-14 text-lg border-2 hover:bg-secondary/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
+          onClick={handleLogin}
+        >
+          <GoogleIcon className="mr-3 size-5" />
+          Continue with Google
+        </Button>
+
+        <p className="text-xs text-muted-foreground font-body">
+          By continuing, you agree to Gawa Tara's{" "}
+          <TOSDialog>
+            <span className="underline cursor-pointer hover:text-primary transition-colors">
+              terms of service and privacy policy
+            </span>
+          </TOSDialog>.
+        </p>
+      </Card>
+    </main>
+  )
+}

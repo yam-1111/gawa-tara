@@ -1,26 +1,106 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+  
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-layout: 64px;
+  
+  --shadow-soft: 0 4px 20px rgba(46, 50, 48, 0.06);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  /* Earthy / Organic Palette */
+  --background: #faf6f0; /* Warm Cream */
+  --foreground: #2e3230; /* Warm Dark Gray */
+  
+  --primary: #4a7c59; /* Forest Green */
+  --primary-foreground: #faf6f0;
+  
+  --secondary: #f3ede4; /* Lighter Cream for tonal layering */
+  --secondary-foreground: #4a7c59;
+  
+  --accent: #705c30; /* Warm Amber */
+  --accent-foreground: #faf6f0;
+  
+  --muted: #e8e2d8;
+  --muted-foreground: #707572;
+  
+  --card: #faf6f0;
+  --card-foreground: #2e3230;
+  
+  --popover: #faf6f0;
+  --popover-foreground: #2e3230;
+  
+  --border: #e2dbcf;
+  --input: #f3ede4;
+  --ring: #4a7c59;
+  
+  --radius: 12px;
+}
+
+.dark {
+  /* Subtle dark mode (preserving warmth) */
+  --background: #242725;
+  --foreground: #f3ede4;
+  
+  --primary: #5c8f6b;
+  --primary-foreground: #242725;
+  
+  --secondary: #2e3230;
+  --secondary-foreground: #5c8f6b;
+  
+  --accent: #8a7645;
+  --accent-foreground: #f3ede4;
+  
+  --muted: #343936;
+  --muted-foreground: #9ba19d;
+  
+  --card: #2e3230;
+  --card-foreground: #f3ede4;
+  
+  --border: #3f4541;
+  --input: #2e3230;
+  --ring: #5c8f6b;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background text-foreground font-body leading-[1.6];
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
 }

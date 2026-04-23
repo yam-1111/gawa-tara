@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+// =========================
+// ENUMS
+enum PriorityLevel {
+  DO
+  SCHEDULE
+  URGENT
+  DELETE
+}
+
+enum RecurrenceType {
+  NONE
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum BlockStatus {
+  PLANNED
+  SKIP
+  DONE
+}
+
+// =========================
+// MODELS
+// =========================
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  googleOAuth   String
+  username      String
+  userPicture   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tasks         Task[]
+  schedule      ScheduleBlock[]
+  tags          Tag[]
+}
+
+model Task {
+  id            String   @id @default(uuid())
+  name          String
+  description   String?
+  dueDate       DateTime?
+  duration      Int      // in minutes
+  isComplete    Boolean  @default(false)
+  isDeleted     Boolean  @default(false)
+
+  priority      PriorityLevel
+  recurrence    RecurrenceType @default(NONE)
+  interval      Int?           @default(1)
+  recurrenceDays Int[]
+  recurrenceEnd DateTime?
+
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+
+  tags          TaskTag[]
+  blocks        ScheduleBlock[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ScheduleBlock {
+  id        String   @id @default(uuid())
+  startTime DateTime
+  endTime   DateTime
+  status    BlockStatus @default(PLANNED)
+
+  taskId    String
+  userId    String
+
+  task      Task @relation(fields: [taskId], references: [id])
+  user      User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Tag {
+  id       String @id @default(uuid())
+  name     String
+  color    String
+
+  userId   String
+  user     User @relation(fields: [userId], references: [id])
+
+  tasks    TaskTag[]
+}
+
+model TaskTag {
+  taskId String
+  tagId  String
+
+  task Task @relation(fields: [taskId], references: [id])
+  tag  Tag  @relation(fields: [tagId], references: [id])
+
+  @@id([taskId, tagId])
+}
+
+
