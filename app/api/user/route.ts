@@ -29,11 +29,7 @@ export async function GET() {
           username: authUser.user_metadata.full_name || authUser.email?.split('@')[0] || 'User',
           userPicture: authUser.user_metadata.avatar_url || null,
           googleOAuth: authUser.id
-        } as any // Use as any to bypass count include in create
-      })
-      // Refetch with count
-      user = await prisma.user.findUnique({
-        where: { id: authUser.id },
+        },
         include: {
           _count: {
             select: { tasks: true }

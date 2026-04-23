@@ -7,8 +7,21 @@ import { Button } from "@/components/ui/button"
 import { TaskCard } from "@/components/task/task-card"
 import { format } from "date-fns"
 
+interface Task {
+  id: string
+  name: string
+  description?: string | null
+  priority: "DO" | "SCHEDULE" | "URGENT" | "DELETE"
+  recurrence: "NONE" | "WEEKLY" | "MONTHLY" | "YEARLY"
+  duration: number
+  dueDate?: string | null
+  isComplete: boolean
+  isDeleted: boolean
+  updatedAt: string
+}
+
 export default function ArchivesPage() {
-  const [tasks, setTasks] = React.useState<any[]>([])
+  const [tasks, setTasks] = React.useState<Task[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
 
   const fetchData = async () => {
@@ -35,7 +48,7 @@ export default function ArchivesPage() {
     if (!acc[date]) acc[date] = []
     acc[date].push(task)
     return acc
-  }, {} as Record<string, any[]>)
+  }, {} as Record<string, Task[]>)
 
   if (isLoading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
@@ -52,7 +65,7 @@ export default function ArchivesPage() {
 
       {tasks.length > 0 ? (
         <div className="space-y-10">
-          {Object.entries(groupedTasks).map(([date, tasks]) => (
+          {Object.entries(groupedTasks).map(([date, items]) => (
             <section key={date} className="space-y-4">
               <div className="flex items-center gap-4">
                 <div className="h-px flex-1 bg-border" />
@@ -61,7 +74,7 @@ export default function ArchivesPage() {
               </div>
               
               <div className="grid gap-4">
-                {tasks.map((task) => (
+                {items.map((task) => (
                   <TaskCard 
                     key={task.id} 
                     task={task} 
