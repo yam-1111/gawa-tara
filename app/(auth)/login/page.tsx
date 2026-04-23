@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { GoogleIcon } from "@/components/ui/google-icon"
 import { TOSDialog } from "@/components/auth/tos"
+import { getURL } from "@/lib/utils"
 
 export default function LoginPage() {
   const supabase = createClient()
@@ -13,7 +14,7 @@ export default function LoginPage() {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/api/auth/callback`,
+        redirectTo: `${getURL()}api/auth/callback`,
       },
     })
   }
