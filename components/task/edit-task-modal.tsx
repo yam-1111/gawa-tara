@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog"
 import { TaskForm } from "./task-form"
 
@@ -22,6 +23,7 @@ export function EditTaskModal({ task, open, onOpenChange, onSuccess }: EditTaskM
       <DialogContent className="max-w-3xl p-0 overflow-hidden border-none bg-transparent shadow-none">
         <DialogHeader className="sr-only">
           <DialogTitle>Edit Task</DialogTitle>
+          <DialogDescription>Edit your task details.</DialogDescription>
         </DialogHeader>
         <TaskForm 
           initialData={task} 

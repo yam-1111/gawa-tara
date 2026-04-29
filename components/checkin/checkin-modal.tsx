@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 
 interface CheckinModalProps {
@@ -65,6 +65,7 @@ export function CheckinModal({ isOpen, onClose, onComplete }: CheckinModalProps)
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Daily State Check-in</DialogTitle>
+          <DialogDescription className="sr-only">How are you feeling today?</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
