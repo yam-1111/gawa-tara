@@ -18,26 +18,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    const checkin = await prisma.dailyCheckin.upsert({
+    const existing = await prisma.dailyCheckin.findFirst({
       where: {
-        userId_date: {
-          userId: user.id,
-          date: date
-        }
-      },
-      update: {
-        energy,
-        focus,
-        stress
-      },
-      create: {
         userId: user.id,
-        date,
-        energy,
-        focus,
-        stress
+        date: date
       }
     })
+
+    let checkin;
+    if (existing) {
+      checkin = await prisma.dailyCheckin.update({
+        where: { id: existing.id },
+        data: { energy, focus, stress }
+      })
+    } else {
+      checkin = await prisma.dailyCheckin.create({
+        data: {
+          userId: user.id,
+          date: date,
+          energy,
+          focus,
+          stress
+        }
+      })
+    }
 
     return NextResponse.json(checkin)
   } catch (error) {
@@ -62,12 +66,10 @@ export async function GET(req: Request) {
   }
 
   try {
-    const checkin = await prisma.dailyCheckin.findUnique({
+    const checkin = await prisma.dailyCheckin.findFirst({
       where: {
-        userId_date: {
-          userId: user.id,
-          date: date
-        }
+        userId: user.id,
+        date: date
       }
     })
 
