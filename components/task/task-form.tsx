@@ -16,16 +16,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-const priorities = ["DO", "SCHEDULE", "URGENT", "DELETE"] as const
-const recurrences = ["NONE", "WEEKLY", "MONTHLY", "YEARLY"] as const
+const priorities = ["DO", "SCHEDULE", "DELEGATE", "DELETE"] as const
+const recurrences = ["NONE", "DAILY", "WEEKLY", "MONTHLY"] as const
 
 interface TaskFormProps {
   initialData?: {
     id: string
     name: string
     description?: string | null
-    priority: "DO" | "SCHEDULE" | "URGENT" | "DELETE"
-    recurrence: "NONE" | "WEEKLY" | "MONTHLY" | "YEARLY"
+    priority: "DO" | "SCHEDULE" | "DELEGATE" | "DELETE"
+    recurrence: "NONE" | "DAILY" | "WEEKLY" | "MONTHLY"
     duration: number
     dueDate?: string | null
   }
@@ -47,6 +47,18 @@ export function TaskForm({ initialData, onSubmitSuccess }: TaskFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name) return
+
+    if (dueDate) {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const inputDate = new Date(dueDate)
+      inputDate.setHours(0, 0, 0, 0)
+
+      if (inputDate < today) {
+        alert("It seems you are inputting past deadline, this maybe not right please check the input..")
+        return
+      }
+    }
 
     setIsSubmitting(true)
     try {
@@ -88,7 +100,8 @@ export function TaskForm({ initialData, onSubmitSuccess }: TaskFormProps) {
     <form onSubmit={handleSubmit}>
       <Card className={cn(
         "mx-auto p-10 space-y-8 bg-card shadow-soft border-border/50",
-        !initialData && "max-w-3xl"
+        !initialData && "max-w-3xl",
+        initialData && "rounded-t-none border-t-0"
       )}>
         <div className="space-y-2">
           <label className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">

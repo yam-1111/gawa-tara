@@ -91,13 +91,46 @@ export default function HomePage() {
       mode = "stress"
     } else if (checkinData.energy <= 2 || checkinData.focus <= 2) {
       // Energy/Focus <= 2: Reduced Load Mode (top priority items only)
-      activeTasks = activeTasks.filter(t => t.priority === "DO" || t.priority === "URGENT")
+      activeTasks = activeTasks.filter(t => t.priority === "DO" || t.priority === "DELEGATE")
       mode = "reduced"
     } else if (checkinData.energy >= 4 && checkinData.focus >= 4) {
       // Full Mode
       mode = "full"
     }
   }
+
+  // Backlog and Prioritization Engine
+  const priorityScore = {
+    DO: 3,
+    SCHEDULE: 2,
+    DELEGATE: 1,
+    DELETE: 0
+  }
+
+  const todayStart = new Date(new Date().setHours(0,0,0,0))
+
+  activeTasks.sort((a, b) => {
+    const aIsBacklog = a.dueDate && new Date(a.dueDate) < todayStart
+    const bIsBacklog = b.dueDate && new Date(b.dueDate) < todayStart
+
+    if (aIsBacklog && !bIsBacklog) return -1
+    if (!aIsBacklog && bIsBacklog) return 1
+
+    if (aIsBacklog && bIsBacklog) {
+      // sort by urgency
+      const aPriority = priorityScore[a.priority as keyof typeof priorityScore] || 0
+      const bPriority = priorityScore[b.priority as keyof typeof priorityScore] || 0
+      if (aPriority !== bPriority) {
+        return bPriority - aPriority
+      }
+
+      const aOverdue = todayStart.getTime() - new Date(a.dueDate).getTime()
+      const bOverdue = todayStart.getTime() - new Date(b.dueDate).getTime()
+      return bOverdue - aOverdue // larger duration first
+    }
+
+    return priorityScore[b.priority as keyof typeof priorityScore] - priorityScore[a.priority as keyof typeof priorityScore]
+  })
   
   // Completed tasks TODAY
   const completedToday = rawTasks.filter(t => 

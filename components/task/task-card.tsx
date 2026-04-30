@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { MoreVertical, X, Minus, Check, Edit2, Trash2 } from "lucide-react"
+import { MoreVertical, X, Minus, Check, Edit2, Trash2, AlertCircle, Clock, Users, AlertTriangle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -26,8 +26,8 @@ interface TaskCardProps {
     id: string
     name: string
     description?: string | null
-    priority: "DO" | "SCHEDULE" | "URGENT" | "DELETE"
-    recurrence: "NONE" | "WEEKLY" | "MONTHLY" | "YEARLY"
+    priority: "DO" | "SCHEDULE" | "DELEGATE" | "DELETE"
+    recurrence: "NONE" | "DAILY" | "WEEKLY" | "MONTHLY"
     duration: number
     dueDate?: string | null
     isComplete: boolean
@@ -77,17 +77,29 @@ export function TaskCard({ task, onRefresh, isArchiveView }: TaskCardProps) {
     handleUpdate({ dueDate: tomorrow.toISOString() })
   }
 
+  const isBacklog = !task.isComplete && task.dueDate && new Date(task.dueDate) < new Date(new Date().setHours(0,0,0,0))
+  const overdueDays = isBacklog ? Math.floor((new Date().getTime() - new Date(task.dueDate!).getTime()) / (1000 * 60 * 60 * 24)) : 0
+
   return (
     <>
       <Card className={cn(
         "group relative flex flex-col justify-between hover:shadow-lg transition-all duration-300 min-h-[160px]",
         isUpdating && "opacity-50 pointer-events-none",
-        isArchiveView && "bg-card/50 border-dashed"
+        isArchiveView && "bg-card/50 border-dashed",
+        isBacklog && "border-destructive/50 ring-1 ring-destructive/20"
       )}>
-        <div className="flex justify-between items-center">
-          <Badge variant={task.priority} className="font-bold tracking-wider">
-            {task.priority}
-          </Badge>
+        <div className="flex justify-between items-start">
+          <div className="flex flex-col gap-2">
+            <Badge variant={task.priority} className="font-bold tracking-wider w-fit">
+              {task.priority}
+            </Badge>
+            {isBacklog && (
+              <Badge variant="destructive" className="font-bold tracking-wider flex items-center gap-1 w-fit">
+                <AlertTriangle className="w-3 h-3" />
+                Backlog - {overdueDays} days
+              </Badge>
+            )}
+          </div>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -124,9 +136,13 @@ export function TaskCard({ task, onRefresh, isArchiveView }: TaskCardProps) {
         </div>
 
         <h3 className={cn(
-          "text-lg font-bold font-body mt-4 flex-1",
+          "text-lg font-bold font-body mt-4 flex-1 flex items-center gap-2",
           (task.isComplete || isArchiveView) && "line-through text-muted-foreground"
         )}>
+          {task.priority === "DO" && <AlertCircle className="w-5 h-5 text-primary" />}
+          {task.priority === "SCHEDULE" && <Clock className="w-5 h-5 text-secondary-foreground" />}
+          {task.priority === "DELEGATE" && <Users className="w-5 h-5 text-amber-500" />}
+          {task.priority === "DELETE" && <Trash2 className="w-5 h-5 text-gray-500" />}
           {task.name}
         </h3>
 

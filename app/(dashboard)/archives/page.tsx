@@ -11,8 +11,8 @@ interface Task {
   id: string
   name: string
   description?: string | null
-  priority: "DO" | "SCHEDULE" | "URGENT" | "DELETE"
-  recurrence: "NONE" | "WEEKLY" | "MONTHLY" | "YEARLY"
+  priority: "DO" | "SCHEDULE" | "DELEGATE" | "DELETE"
+  recurrence: "NONE" | "DAILY" | "WEEKLY" | "MONTHLY"
   duration: number
   dueDate?: string | null
   isComplete: boolean
