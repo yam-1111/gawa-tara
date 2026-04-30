@@ -19,11 +19,10 @@ const Slider = ({ label, value, setValue }: { label: string, value: number, setV
         <button
           key={v}
           onClick={() => setValue(v)}
-          className={`flex-1 h-10 rounded-md transition-colors ${
-            value === v
-              ? "bg-primary text-primary-foreground font-bold"
-              : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-          }`}
+          className={`flex-1 h-10 rounded-md transition-colors ${value === v
+            ? "bg-primary text-primary-foreground font-bold"
+            : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+            }`}
         >
           {v}
         </button>
@@ -69,14 +68,14 @@ export function CheckinModal({ isOpen, onClose, onComplete }: CheckinModalProps)
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          <Slider label="Energy" value={energy} setValue={setEnergy} />
-          <Slider label="Focus" value={focus} setValue={setFocus} />
-          <Slider label="Stress" value={stress} setValue={setStress} />
+          <Slider label="😄 Energy" value={energy} setValue={setEnergy} />
+          <Slider label="🧠 Focus" value={focus} setValue={setFocus} />
+          <Slider label="😰 Stress" value={stress} setValue={setStress} />
         </div>
 
         <div className="flex justify-end pt-4">
           <Button onClick={handleSubmit} disabled={isLoading}>
-            {isLoading ? "Saving..." : "Save State"}
+            {isLoading ? "✏️ Writing to Journal..." : "Add your feeling to the journal!"}
           </Button>
         </div>
       </DialogContent>
