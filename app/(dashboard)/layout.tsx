@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Topbar } from "@/components/layout/topbar"
+import { CheckinScheduler } from "@/components/checkin/checkin-scheduler"
 
 export default function DashboardLayout({
   children,
@@ -16,6 +17,7 @@ export default function DashboardLayout({
           {children}
         </main>
       </div>
+      <CheckinScheduler />
     </div>
   )
 }

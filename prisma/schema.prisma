@@ -15,15 +15,15 @@ datasource db {
 enum PriorityLevel {
   DO
   SCHEDULE
-  URGENT
+  DELEGATE
   DELETE
 }
 
 enum RecurrenceType {
   NONE
+  DAILY
   WEEKLY
   MONTHLY
-  YEARLY
 }
 
 enum BlockStatus {
