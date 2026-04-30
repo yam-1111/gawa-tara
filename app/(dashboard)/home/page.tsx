@@ -7,15 +7,14 @@ import { Card } from "@/components/ui/card"
 import { ProgressCircle } from "@/components/ui/progress-circle"
 import { Button } from "@/components/ui/button"
 import { TaskCard } from "@/components/task/task-card"
-import { CheckinModal } from "@/components/checkin/checkin-modal"
 import { quotes } from "@/data/quotes"
+import { startOfDay } from "date-fns"
 
 export default function HomePage() {
   const [viewMode, setViewMode] = React.useState<"grid" | "list">("grid")
   const [quote, setQuote] = React.useState<string>("")
   const [user, setUser] = React.useState<any>(null)
   const [checkinData, setCheckinData] = React.useState<any>(null)
-  const [isCheckinModalOpen, setIsCheckinModalOpen] = React.useState(false)
   const [rawTasks, setRawTasks] = React.useState<any[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
 
@@ -47,7 +46,6 @@ export default function HomePage() {
         if (checkinRes.ok) {
           const checkin = await checkinRes.json()
           setCheckinData(checkin)
-          if (checkin.energy === null) setIsCheckinModalOpen(true)
         }
 
         setUser(userData)
@@ -72,32 +70,69 @@ export default function HomePage() {
     }
   }
 
-  const handleCheckinComplete = (data: any) => {
-    setCheckinData(data)
-    setIsCheckinModalOpen(false)
-  }
-
   const today = new Date().toDateString()
   
   // Filter active tasks
-  let activeTasks = rawTasks.filter(t => !t.isComplete && !t.isDeleted)
+  const todayStart = startOfDay(new Date())
+  const allActive = rawTasks.filter(t => !t.isComplete && !t.isDeleted)
+
+  let activeTasks = [...allActive]
 
   // Apply adaptation layer logic based on checkin data
   let mode = "normal"
   if (checkinData && checkinData.energy !== null) {
     if (checkinData.stress >= 4) {
       // Stress >= 4: prioritize DO tasks only, hide non-critical
-      activeTasks = activeTasks.filter(t => t.priority === "DO")
+      activeTasks = activeTasks.filter(t => t.priority === "DO" || (t.dueDate && startOfDay(new Date(t.dueDate)) < todayStart)) // also keep backlog
       mode = "stress"
     } else if (checkinData.energy <= 2 || checkinData.focus <= 2) {
       // Energy/Focus <= 2: Reduced Load Mode (top priority items only)
-      activeTasks = activeTasks.filter(t => t.priority === "DO" || t.priority === "URGENT")
+      activeTasks = activeTasks.filter(t => t.priority === "DO" || t.priority === "URGENT" || (t.dueDate && startOfDay(new Date(t.dueDate)) < todayStart))
       mode = "reduced"
     } else if (checkinData.energy >= 4 && checkinData.focus >= 4) {
       // Full Mode
       mode = "full"
     }
   }
+
+  // Workload Reduction & Prioritization Engine Sorting
+  activeTasks.sort((a, b) => {
+    const aStart = a.dueDate ? startOfDay(new Date(a.dueDate)) : null
+    const bStart = b.dueDate ? startOfDay(new Date(b.dueDate)) : null
+
+    const isABacklog = aStart && aStart < todayStart
+    const isBBacklog = bStart && bStart < todayStart
+
+    // Priority 1: Backlog Tasks Highest Priority
+    if (isABacklog && !isBBacklog) return -1
+    if (!isABacklog && isBBacklog) return 1
+
+    // If both are backlog, sort by overdue duration (oldest first)
+    if (isABacklog && isBBacklog) {
+      return aStart!.getTime() - bStart!.getTime()
+    }
+
+    // Priority Order Mapping
+    const priorityWeight: Record<string, number> = {
+      DO: 4,
+      SCHEDULE: 3,
+      URGENT: 2, // Treated as DELEGATE according to prompt mapping
+      DELETE: 1
+    }
+
+    // Normal Sorting Logic
+    const weightA = priorityWeight[a.priority] || 0
+    const weightB = priorityWeight[b.priority] || 0
+
+    if (weightA !== weightB) return weightB - weightA
+
+    // Fallback: sort by nearest due date
+    if (aStart && bStart) {
+        return aStart.getTime() - bStart.getTime()
+    }
+
+    return 0
+  })
   
   // Completed tasks TODAY
   const completedToday = rawTasks.filter(t => 
@@ -145,9 +180,6 @@ export default function HomePage() {
           <h3 className="text-2xl font-heading font-bold text-primary">Your Tasks</h3>
 
           <div className="flex gap-4 items-center">
-            <Button variant="outline" size="sm" onClick={() => setIsCheckinModalOpen(true)}>
-              Update State
-            </Button>
             <div className="flex bg-secondary p-1 rounded-lg">
               <Button
                 variant={viewMode === "grid" ? "default" : "ghost"}
@@ -192,12 +224,6 @@ export default function HomePage() {
           </Card>
         )}
       </section>
-
-      <CheckinModal
-        isOpen={isCheckinModalOpen}
-        onClose={() => checkinData?.energy !== null && setIsCheckinModalOpen(false)}
-        onComplete={handleCheckinComplete}
-      />
     </div>
   )
 }

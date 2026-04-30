@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { startOfDay, subDays } from "date-fns"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,6 +48,17 @@ export function TaskForm({ initialData, onSubmitSuccess }: TaskFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name) return
+
+    // RECURRENT TASK VALIDATION / DATE VALIDATION
+    if (dueDate) {
+      const due = startOfDay(new Date(dueDate))
+      const today = startOfDay(new Date())
+      const threshold = subDays(today, 1)
+      if (due < today || due <= threshold) {
+        alert("It seems you are inputting past deadline, this maybe not right please check the input..")
+        return
+      }
+    }
 
     setIsSubmitting(true)
     try {

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { MoreVertical, X, Minus, Check, Edit2, Trash2 } from "lucide-react"
+import { MoreVertical, X, Minus, Check, Edit2, Trash2, AlertCircle, Clock, Users, AlertTriangle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 import { EditTaskModal } from "./edit-task-modal"
+import { startOfDay, differenceInDays } from "date-fns"
 
 interface TaskCardProps {
   task: {
@@ -77,17 +78,45 @@ export function TaskCard({ task, onRefresh, isArchiveView }: TaskCardProps) {
     handleUpdate({ dueDate: tomorrow.toISOString() })
   }
 
+  // Backlog Logic
+  const isBacklog = React.useMemo(() => {
+    if (!task.dueDate || task.isComplete) return false
+    const due = startOfDay(new Date(task.dueDate))
+    const today = startOfDay(new Date())
+    return due < today
+  }, [task.dueDate, task.isComplete])
+
+  const backlogDays = React.useMemo(() => {
+    if (!isBacklog || !task.dueDate) return 0
+    const due = startOfDay(new Date(task.dueDate))
+    const today = startOfDay(new Date())
+    return differenceInDays(today, due)
+  }, [isBacklog, task.dueDate])
+
+  // Iconography Mapping
+  const PriorityIcon = React.useMemo(() => {
+    if (isBacklog) return AlertTriangle
+    if (task.priority === "DO") return AlertCircle
+    if (task.priority === "SCHEDULE") return Clock
+    if (task.priority === "URGENT") return Users
+    if (task.priority === "DELETE") return Trash2
+    return Clock
+  }, [isBacklog, task.priority])
+
   return (
     <>
       <Card className={cn(
         "group relative flex flex-col justify-between hover:shadow-lg transition-all duration-300 min-h-[160px]",
         isUpdating && "opacity-50 pointer-events-none",
-        isArchiveView && "bg-card/50 border-dashed"
+        isArchiveView && "bg-card/50 border-dashed",
+        isBacklog && "border-destructive/50 shadow-destructive/10"
       )}>
         <div className="flex justify-between items-center">
-          <Badge variant={task.priority} className="font-bold tracking-wider">
-            {task.priority}
-          </Badge>
+          <div className="flex gap-2 items-center">
+            <Badge variant={isBacklog ? "destructive" : task.priority as any} className="font-bold tracking-wider">
+              {isBacklog ? `BACKLOG - ${backlogDays} DAYS` : task.priority}
+            </Badge>
+          </div>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -123,12 +152,15 @@ export function TaskCard({ task, onRefresh, isArchiveView }: TaskCardProps) {
           </DropdownMenu>
         </div>
 
-        <h3 className={cn(
-          "text-lg font-bold font-body mt-4 flex-1",
-          (task.isComplete || isArchiveView) && "line-through text-muted-foreground"
-        )}>
-          {task.name}
-        </h3>
+        <div className="flex gap-2 items-start mt-4 flex-1">
+          <PriorityIcon className={cn("mt-1 shrink-0 size-5", isBacklog ? "text-destructive" : "text-muted-foreground")} />
+          <h3 className={cn(
+            "text-lg font-bold font-body",
+            (task.isComplete || isArchiveView) && "line-through text-muted-foreground"
+          )}>
+            {task.name}
+          </h3>
+        </div>
 
         {!isArchiveView && (
           <div className="flex justify-end gap-2 mt-4">
