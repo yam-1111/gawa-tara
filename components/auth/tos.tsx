@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog"
 import { ScrollArea } from "@radix-ui/react-scroll-area"
 
@@ -21,6 +22,7 @@ export function TOSDialog({ children }: { children: React.ReactNode }) {
           <DialogTitle className="font-heading text-2xl text-primary border-b pb-4">
             Legal Information
           </DialogTitle>
+          <DialogDescription className="sr-only">Terms of Service and Privacy Policy</DialogDescription>
         </DialogHeader>
         
         <div className="flex-1 overflow-y-auto pr-4 font-body text-sm leading-relaxed space-y-8 py-6">

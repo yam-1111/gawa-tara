@@ -7,12 +7,15 @@ import { Card } from "@/components/ui/card"
 import { ProgressCircle } from "@/components/ui/progress-circle"
 import { Button } from "@/components/ui/button"
 import { TaskCard } from "@/components/task/task-card"
+import { CheckinModal } from "@/components/checkin/checkin-modal"
 import { quotes } from "@/data/quotes"
 
 export default function HomePage() {
   const [viewMode, setViewMode] = React.useState<"grid" | "list">("grid")
   const [quote, setQuote] = React.useState<string>("")
   const [user, setUser] = React.useState<any>(null)
+  const [checkinData, setCheckinData] = React.useState<any>(null)
+  const [isCheckinModalOpen, setIsCheckinModalOpen] = React.useState(false)
   const [rawTasks, setRawTasks] = React.useState<any[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
 
@@ -20,10 +23,13 @@ export default function HomePage() {
     setQuote(quotes[Math.floor(Math.random() * quotes.length)])
     
     const fetchData = async () => {
+      const today = new Date().toISOString().split('T')[0]
+
       try {
-        const [userRes, tasksRes] = await Promise.all([
+        const [userRes, tasksRes, checkinRes] = await Promise.all([
           fetch("/api/user"),
-          fetch("/api/tasks")
+          fetch("/api/tasks"),
+          fetch(`/api/checkin?date=${today}`)
         ])
 
         if (userRes.status === 401 || tasksRes.status === 401) {
@@ -37,6 +43,12 @@ export default function HomePage() {
 
         const userData = await userRes.json()
         const tasksData = await tasksRes.json()
+
+        if (checkinRes.ok) {
+          const checkin = await checkinRes.json()
+          setCheckinData(checkin)
+          if (checkin.energy === null) setIsCheckinModalOpen(true)
+        }
 
         setUser(userData)
         setRawTasks(Array.isArray(tasksData) ? tasksData : [])
@@ -60,10 +72,32 @@ export default function HomePage() {
     }
   }
 
+  const handleCheckinComplete = (data: any) => {
+    setCheckinData(data)
+    setIsCheckinModalOpen(false)
+  }
+
   const today = new Date().toDateString()
   
-  // Active tasks for the grid
-  const activeTasks = rawTasks.filter(t => !t.isComplete && !t.isDeleted)
+  // Filter active tasks
+  let activeTasks = rawTasks.filter(t => !t.isComplete && !t.isDeleted)
+
+  // Apply adaptation layer logic based on checkin data
+  let mode = "normal"
+  if (checkinData && checkinData.energy !== null) {
+    if (checkinData.stress >= 4) {
+      // Stress >= 4: prioritize DO tasks only, hide non-critical
+      activeTasks = activeTasks.filter(t => t.priority === "DO")
+      mode = "stress"
+    } else if (checkinData.energy <= 2 || checkinData.focus <= 2) {
+      // Energy/Focus <= 2: Reduced Load Mode (top priority items only)
+      activeTasks = activeTasks.filter(t => t.priority === "DO" || t.priority === "URGENT")
+      mode = "reduced"
+    } else if (checkinData.energy >= 4 && checkinData.focus >= 4) {
+      // Full Mode
+      mode = "full"
+    }
+  }
   
   // Completed tasks TODAY
   const completedToday = rawTasks.filter(t => 
@@ -88,6 +122,9 @@ export default function HomePage() {
         <Card className="lg:col-span-2 bg-primary text-primary-foreground p-10 flex flex-col justify-center">
           <h2 className="text-4xl font-heading font-bold mb-4">
             Hi {user?.username || "there"}!
+            {mode === "reduced" && <span className="ml-2 text-xl font-normal opacity-80">(Reduced Load Mode)</span>}
+            {mode === "stress" && <span className="ml-2 text-xl font-normal opacity-80">(Critical Tasks Only)</span>}
+            {mode === "full" && <span className="ml-2 text-xl font-normal opacity-80">(Full Power Mode)</span>}
           </h2>
           <p className="text-xl opacity-90 italic">
             {quote ? `"${quote}"` : "..."}
@@ -106,25 +143,31 @@ export default function HomePage() {
       <section className="space-y-6">
         <div className="flex items-center justify-between">
           <h3 className="text-2xl font-heading font-bold text-primary">Your Tasks</h3>
-          <div className="flex bg-secondary p-1 rounded-lg">
-            <Button
-              variant={viewMode === "grid" ? "default" : "ghost"}
-              size="sm"
-              className="h-8"
-              onClick={() => setViewMode("grid")}
-            >
-              <LayoutGrid className="size-4 mr-2" />
-              Grid
+
+          <div className="flex gap-4 items-center">
+            <Button variant="outline" size="sm" onClick={() => setIsCheckinModalOpen(true)}>
+              Update State
             </Button>
-            <Button
-              variant={viewMode === "list" ? "default" : "ghost"}
-              size="sm"
-              className="h-8"
-              onClick={() => setViewMode("list")}
-            >
-              <List className="size-4 mr-2" />
-              List
-            </Button>
+            <div className="flex bg-secondary p-1 rounded-lg">
+              <Button
+                variant={viewMode === "grid" ? "default" : "ghost"}
+                size="sm"
+                className="h-8"
+                onClick={() => setViewMode("grid")}
+              >
+                <LayoutGrid className="size-4 mr-2" />
+                Grid
+              </Button>
+              <Button
+                variant={viewMode === "list" ? "default" : "ghost"}
+                size="sm"
+                className="h-8"
+                onClick={() => setViewMode("list")}
+              >
+                <List className="size-4 mr-2" />
+                List
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -149,6 +192,12 @@ export default function HomePage() {
           </Card>
         )}
       </section>
+
+      <CheckinModal
+        isOpen={isCheckinModalOpen}
+        onClose={() => checkinData?.energy !== null && setIsCheckinModalOpen(false)}
+        onComplete={handleCheckinComplete}
+      />
     </div>
   )
 }

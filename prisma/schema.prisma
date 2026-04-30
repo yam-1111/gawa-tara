@@ -48,6 +48,7 @@ model User {
   tasks         Task[]
   schedule      ScheduleBlock[]
   tags          Tag[]
+  checkins      DailyCheckin[]
 }
 
 model Task {
@@ -112,3 +113,18 @@ model TaskTag {
 }
 
 
+model DailyCheckin {
+  id        String   @id @default(uuid())
+  userId    String
+  date      String
+  energy    Int
+  focus     Int
+  stress    Int
+
+  user      User     @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date])
+}
