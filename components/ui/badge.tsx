@@ -11,11 +11,12 @@ const badgeVariants = cva(
         secondary: "bg-secondary text-secondary-foreground",
         accent: "bg-accent text-accent-foreground",
         outline: "text-foreground border border-border",
+        destructive: "bg-destructive text-destructive-foreground",
         // Priority specific
         DO: "bg-primary text-primary-foreground",
         SCHEDULE: "bg-secondary text-secondary-foreground",
-        URGENT: "bg-accent text-accent-foreground",
-        DELETE: "bg-muted text-muted-foreground line-through",
+        DELEGATE: "bg-amber-500 text-white",
+        DELETE: "bg-gray-500 text-white line-through",
       },
     },
     defaultVariants: {

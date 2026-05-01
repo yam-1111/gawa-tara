@@ -14,8 +14,8 @@ export function generateSchedule(tasks: Task[], userId: string): Partial<Schedul
       } else if (a.dueDate) return -1
       else if (b.dueDate) return 1
 
-      // 2. Priority: DO > URGENT > SCHEDULE
-      const priorityMap = { DO: 0, URGENT: 1, SCHEDULE: 2, DELETE: 3 }
+      // 2. Priority: DO > DELEGATE > SCHEDULE
+      const priorityMap = { DO: 0, DELEGATE: 1, SCHEDULE: 2, DELETE: 3 }
       if (priorityMap[a.priority] !== priorityMap[b.priority]) {
         return priorityMap[a.priority] - priorityMap[b.priority]
       }
