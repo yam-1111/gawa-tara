@@ -10,11 +10,54 @@ import { TaskCard } from "@/components/task/task-card"
 import { CheckinModal } from "@/components/checkin/checkin-modal"
 import { quotes } from "@/data/quotes"
 
+const getWeekDates = () => {
+  const days = [];
+  const curr = new Date();
+  const currentDay = curr.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  const distanceToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+  
+  const monday = new Date(curr);
+  monday.setDate(curr.getDate() + distanceToMonday);
+
+  for (let i = 0; i < 5; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    days.push(d.toISOString().split('T')[0]);
+  }
+  return days;
+}
+
+const getEmotionEmoji = (data: any) => {
+  if (!data || data.energy === null) return null;
+  const score = Math.round((data.energy + data.focus + (6 - data.stress)) / 3);
+  if (score >= 5) return "productive.png";
+  if (score >= 4) return "happy.png";
+  if (score >= 3) return "neutral.png";
+  if (score >= 2) return "sad.png";
+  return "cry.png";
+}
+
+const LikertBar = ({ label, value }: { label: string, value: number }) => (
+  <div className="mb-3">
+    <div className="flex justify-between text-sm mb-1">
+      <span className="opacity-80">{label}</span>
+      <span className="font-bold">{value}/5</span>
+    </div>
+    <div className="h-2 w-full bg-accent-foreground/20 rounded-full overflow-hidden">
+      <div 
+        className="h-full bg-accent-foreground rounded-full transition-all duration-500" 
+        style={{ width: `${(value / 5) * 100}%` }} 
+      />
+    </div>
+  </div>
+)
+
 export default function HomePage() {
   const [viewMode, setViewMode] = React.useState<"grid" | "list">("grid")
   const [quote, setQuote] = React.useState<string>("")
   const [user, setUser] = React.useState<any>(null)
   const [checkinData, setCheckinData] = React.useState<any>(null)
+  const [weekData, setWeekData] = React.useState<Record<string, any>>({})
   const [isCheckinModalOpen, setIsCheckinModalOpen] = React.useState(false)
   const [rawTasks, setRawTasks] = React.useState<any[]>([])
   const [isLoading, setIsLoading] = React.useState(true)
@@ -24,13 +67,22 @@ export default function HomePage() {
     
     const fetchData = async () => {
       const today = new Date().toISOString().split('T')[0]
+      const weekDatesList = getWeekDates()
 
       try {
-        const [userRes, tasksRes, checkinRes] = await Promise.all([
+        const weekFetches = weekDatesList.map(d => 
+          fetch(`/api/checkin?date=${d}`).then(res => res.ok ? res.json() : null)
+        )
+
+        const results = await Promise.all([
           fetch("/api/user"),
           fetch("/api/tasks"),
-          fetch(`/api/checkin?date=${today}`)
+          ...weekFetches
         ])
+
+        const userRes = results[0] as Response
+        const tasksRes = results[1] as Response
+        const weekResults = results.slice(2)
 
         if (userRes.status === 401 || tasksRes.status === 401) {
           setIsLoading(false)
@@ -44,10 +96,18 @@ export default function HomePage() {
         const userData = await userRes.json()
         const tasksData = await tasksRes.json()
 
-        if (checkinRes.ok) {
-          const checkin = await checkinRes.json()
-          setCheckinData(checkin)
-          if (checkin.energy === null) setIsCheckinModalOpen(true)
+        const newWeekData: Record<string, any> = {}
+        weekDatesList.forEach((date, i) => {
+          newWeekData[date] = weekResults[i]
+        })
+        setWeekData(newWeekData)
+
+        const todayCheckin = newWeekData[today]
+        if (todayCheckin) {
+          setCheckinData(todayCheckin)
+          if (todayCheckin.energy === null) setIsCheckinModalOpen(true)
+        } else {
+          setIsCheckinModalOpen(true)
         }
 
         setUser(userData)
@@ -74,6 +134,11 @@ export default function HomePage() {
 
   const handleCheckinComplete = (data: any) => {
     setCheckinData(data)
+    const today = new Date().toISOString().split('T')[0]
+    setWeekData(prev => ({
+      ...prev,
+      [today]: data
+    }))
     setIsCheckinModalOpen(false)
   }
 
@@ -151,8 +216,8 @@ export default function HomePage() {
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Main Bento Header Card */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 bg-primary text-primary-foreground p-10 flex flex-col justify-center">
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="bg-primary text-primary-foreground p-10 flex flex-col justify-center min-h-[220px]">
           <h2 className="text-4xl font-heading font-bold mb-4">
             Hi {user?.username || "there"}!
             {mode === "reduced" && <span className="ml-2 text-xl font-normal opacity-80">(Reduced Load Mode)</span>}
@@ -164,11 +229,50 @@ export default function HomePage() {
           </p>
         </Card>
 
-        <Card className="bg-accent text-accent-foreground p-10 flex flex-col items-center justify-center">
-          <ProgressCircle value={progressValue} size={140} strokeWidth={10} />
-          <p className="mt-4 font-heading text-lg font-medium">
-            {completedToday} / {totalTasks} Tasks Done
-          </p>
+        <Card className="bg-accent text-accent-foreground p-8 flex flex-col justify-center min-h-[220px]">
+          <h3 className="font-heading text-2xl font-bold mb-6">State & Mood</h3>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-center">
+            <div className="space-y-1 xl:border-r border-accent-foreground/20 xl:pr-6">
+              {checkinData && checkinData.energy !== null ? (
+                <>
+                  <LikertBar label="Energy" value={checkinData.energy} />
+                  <LikertBar label="Focus" value={checkinData.focus} />
+                  <LikertBar label="Stress" value={checkinData.stress} />
+                </>
+              ) : (
+                <div className="opacity-80 italic text-sm py-4">No state recorded for today.</div>
+              )}
+            </div>
+            <div className="xl:pl-2">
+               <h4 className="text-sm font-medium opacity-80 uppercase tracking-wider mb-4">5-Day Progress</h4>
+               <div className="flex gap-2 justify-between xl:justify-start">
+                 {getWeekDates().map((dateStr) => {
+                   const todayStr = new Date().toISOString().split('T')[0];
+                   const isFuture = dateStr > todayStr;
+                   const dataForDay = weekData[dateStr];
+                   const emojiFile = getEmotionEmoji(dataForDay);
+
+                   return (
+                     <div key={dateStr} className="flex flex-col items-center gap-1">
+                       <div className={cn(
+                         "w-10 h-10 rounded-full flex items-center justify-center bg-accent-foreground/5",
+                         isFuture && "opacity-40 grayscale"
+                       )}>
+                         {!isFuture && emojiFile ? (
+                           <img src={`/assets/png/emoji/${emojiFile}`} alt="mood" className="w-6 h-6 object-contain" />
+                         ) : (
+                           <div className="w-4 h-4 rounded-full bg-accent-foreground/20" />
+                         )}
+                       </div>
+                       <span className="text-[10px] font-bold uppercase opacity-60">
+                         {new Date(dateStr).toLocaleDateString('en-US', { weekday: 'narrow' })}
+                       </span>
+                     </div>
+                   )
+                 })}
+               </div>
+            </div>
+          </div>
         </Card>
       </section>
 
