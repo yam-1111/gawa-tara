@@ -13,10 +13,29 @@ const manrope = Manrope({
   variable: "--font-body",
 });
 
+const baseUrl = process.env.NODE_ENV === 'production' ? 'https://gawa-tara-ctcc.vercel.app' : 'http://localhost:3000'
+
 export const metadata: Metadata = {
+  metadataBase: new URL(baseUrl),
   title: "Gawa Tara? | Task Management",
   description: "Rooted warmth for your daily tasks.",
-};
+  openGraph: {
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Grow your habits, achieve your goals',
+      },
+    ],
+  },
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon-32x32.png',
+    apple: '/apple-touch-icon.png',
+  },
+  manifest: '/site.webmanifest',
+}
 
 import { ThemeProvider } from "@/components/theme-provider";
 

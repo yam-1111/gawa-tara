@@ -5,10 +5,11 @@ interface ProgressCircleProps extends React.HTMLAttributes<HTMLDivElement> {
   value: number // 0 to 100
   size?: number
   strokeWidth?: number
+  text?: React.ReactNode
 }
 
 const ProgressCircle = React.forwardRef<HTMLDivElement, ProgressCircleProps>(
-  ({ value, size = 120, strokeWidth = 8, className, ...props }, ref) => {
+  ({ value, size = 120, strokeWidth = 8, text, className, ...props }, ref) => {
     const radius = (size - strokeWidth) / 2
     const circumference = radius * 2 * Math.PI
     const offset = circumference - (value / 100) * circumference
@@ -49,8 +50,8 @@ const ProgressCircle = React.forwardRef<HTMLDivElement, ProgressCircleProps>(
             cy={size / 2}
           />
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center text-xl font-bold font-heading">
-          {Math.round(value)}%
+        <div className="absolute inset-0 flex items-center justify-center text-xl font-bold font-sans">
+          {text !== undefined ? text : `${Math.round(value)}%`}
         </div>
       </div>
     )

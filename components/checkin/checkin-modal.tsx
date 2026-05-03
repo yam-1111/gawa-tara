@@ -6,6 +6,8 @@ interface CheckinModalProps {
   isOpen: boolean
   onClose: () => void
   onComplete: (data: Record<string, unknown>) => void
+  date?: string
+  initialData?: any
 }
 
 const Slider = ({ label, value, setValue }: { label: string, value: number, setValue: (v: number) => void }) => (
@@ -31,21 +33,29 @@ const Slider = ({ label, value, setValue }: { label: string, value: number, setV
   </div>
 )
 
-export function CheckinModal({ isOpen, onClose, onComplete }: CheckinModalProps) {
+export function CheckinModal({ isOpen, onClose, onComplete, date, initialData }: CheckinModalProps) {
   const [energy, setEnergy] = React.useState(3)
   const [focus, setFocus] = React.useState(3)
   const [stress, setStress] = React.useState(3)
   const [isLoading, setIsLoading] = React.useState(false)
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setEnergy(initialData?.energy ?? 3)
+      setFocus(initialData?.focus ?? 3)
+      setStress(initialData?.stress ?? 3)
+    }
+  }, [isOpen, initialData])
+
   const handleSubmit = async () => {
     setIsLoading(true)
-    const today = new Date().toISOString().split('T')[0]
+    const targetDate = date || new Date().toISOString().split('T')[0]
 
     try {
       const res = await fetch("/api/checkin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ energy, focus, stress, date: today }),
+        body: JSON.stringify({ energy, focus, stress, date: targetDate }),
       })
 
       if (!res.ok) throw new Error("Failed to save checkin")
