@@ -11,6 +11,8 @@ export function getURL(): string {
     process?.env?.NEXT_PUBLIC_VERCEL_URL ?? // Automatically set by Vercel.
     "http://localhost:3000/"
 
+  console.log("URL: ", url)
+
   // Ensure URL ends with a slash
   return url.endsWith("/") ? url : `${url}/`
 }
