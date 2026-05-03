@@ -15,7 +15,7 @@ export function generateSchedule(tasks: Task[], userId: string): Partial<Schedul
       else if (b.dueDate) return 1
 
       // 2. Priority: DO > DELEGATE > SCHEDULE
-      const priorityMap = { DO: 0, DELEGATE: 1, SCHEDULE: 2, DELETE: 3 }
+      const priorityMap: Record<PriorityLevel, number> = { DO: 0, URGENT: 1, DELEGATE: 2, SCHEDULE: 3, DELETE: 4 }
       if (priorityMap[a.priority] !== priorityMap[b.priority]) {
         return priorityMap[a.priority] - priorityMap[b.priority]
       }
@@ -51,7 +51,7 @@ export function generateSchedule(tasks: Task[], userId: string): Partial<Schedul
 
     while (remainingDuration > 0) {
       const endOfDay = getEndOfDay(currentPointer)
-      
+
       // If current pointer is past end of day, move to next day
       if (currentPointer >= endOfDay) {
         currentPointer = getStartOfNextDay(currentPointer)
