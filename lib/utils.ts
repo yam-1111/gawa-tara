@@ -6,13 +6,12 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getURL(): string {
-  const url =
-    process?.env?.NEXT_PUBLIC_SITE_URL ?? // Set this to your site URL in production env.
-    process?.env?.NEXT_PUBLIC_VERCEL_URL ?? // Automatically set by Vercel.
-    "http://localhost:3000/"
+  const raw =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_VERCEL_URL ||
+    "http://localhost:3000"
 
-  console.log("URL: ", url)
+  const url = raw.startsWith("http") ? raw : `https://${raw}`
 
-  // Ensure URL ends with a slash
-  return url.endsWith("/") ? url : `${url}/`
+  return url.replace(/\/$/, "")
 }
