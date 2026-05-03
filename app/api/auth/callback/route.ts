@@ -11,24 +11,22 @@ export async function GET(request: Request) {
   if (code) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
-    
+
     if (!error) {
-      // Initialize user and sync avatar
       try {
-        await fetch(`${origin}api/user/sync-avatar`, {
+        await fetch(`${origin}/api/user/sync-avatar`, {
           method: "POST",
           headers: {
-            Cookie: request.headers.get("Cookie") || ""
+            cookie: request.headers.get("cookie") || ""
           }
         })
       } catch (e) {
         console.error("Failed to sync avatar on first login:", e)
       }
 
-      return NextResponse.redirect(`${origin}${next.startsWith('/') ? next.slice(1) : next}`)
+      return NextResponse.redirect(new URL(next, origin))
     }
   }
 
-  // return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}login?error=auth-failed`)
+  return NextResponse.redirect(new URL("/login?error=auth-failed", origin))
 }
