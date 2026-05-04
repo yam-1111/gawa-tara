@@ -15,7 +15,8 @@ const badgeVariants = cva(
         // Priority specific
         DO: "bg-primary text-primary-foreground",
         SCHEDULE: "bg-secondary text-secondary-foreground",
-        DELEGATE: "bg-amber-500 text-white",
+        DELEGATE: "bg-[#705c30] text-white",
+        URGENT: "bg-orange-600 text-white",
         DELETE: "bg-gray-500 text-white line-through",
       },
     },

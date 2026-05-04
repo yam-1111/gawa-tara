@@ -18,6 +18,7 @@ export function getURL(): string {
     "http://localhost:3000"
 
   const url = raw.startsWith("http") ? raw : `https://${raw}`
+  console.log("ENV URL:", url)
 
   return url.replace(/\/$/, "")
 }

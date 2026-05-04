@@ -54,7 +54,7 @@ export function Sidebar() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    window.location.href = "/login"
+    window.location.href = "/"
   }
 
   return (
@@ -113,7 +113,7 @@ export function Sidebar() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onClick={handleLogout}
               className="text-destructive focus:bg-destructive focus:text-destructive-foreground cursor-pointer"
             >

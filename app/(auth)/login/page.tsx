@@ -4,15 +4,16 @@ import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { GoogleIcon } from "@/components/ui/google-icon"
+import { LinkedinIcon } from "@/components/ui/linkedin-icon"
 import { TOSDialog } from "@/components/auth/tos"
 import { getURL } from "@/lib/utils"
 
 export default function LoginPage() {
   const supabase = createClient()
 
-  const handleLogin = async () => {
+  const handleLogin = async (provider: 'google' | 'linkedin_oidc') => {
     await supabase.auth.signInWithOAuth({
-      provider: "google",
+      provider: provider,
       options: {
         redirectTo: `${getURL()}api/auth/callback`,
       },
@@ -31,15 +32,27 @@ export default function LoginPage() {
           <p className="text-muted-foreground font-body">Continue your planning journey</p>
         </div>
 
-        <Button 
-          variant="outline" 
-          size="lg" 
-          className="w-full h-14 text-lg border-2 hover:bg-secondary/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
-          onClick={handleLogin}
-        >
-          <GoogleIcon className="mr-3 size-5" />
-          Continue with Google
-        </Button>
+        <div className="space-y-3">
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="w-full h-14 text-lg border-2 hover:bg-secondary/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            onClick={() => handleLogin('google')}
+          >
+            <GoogleIcon className="mr-3 size-5" />
+            Continue with Google
+          </Button>
+
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="w-full h-14 text-lg border-2 hover:bg-secondary/50 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            onClick={() => handleLogin('linkedin_oidc')}
+          >
+            <LinkedinIcon className="mr-3 size-5" />
+            Continue with LinkedIn
+          </Button>
+        </div>
 
         <p className="text-xs text-muted-foreground font-body">
           By continuing, you agree to Gawa Tara's{" "}
