@@ -57,7 +57,7 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json(log)
-  } catch (error: any) {
+  } catch (error) {
     console.error(error)
     return NextResponse.json({ error: "Failed to log habit" }, { status: 500 })
   }
@@ -89,7 +89,7 @@ export async function DELETE(req: Request) {
     })
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json({ error: "Failed to delete habit log" }, { status: 500 })
   }
 }
