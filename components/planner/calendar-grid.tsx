@@ -41,37 +41,66 @@ export function CalendarGrid() {
   const monthName = currentDate.toLocaleString('default', { month: 'long' })
   const year = currentDate.getFullYear()
 
-  // Recurrence Logic
-  const getDailyEvents = (day: number) => {
-    const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
-    targetDate.setHours(0, 0, 0, 0)
+  // Pre-calculate daily events with useMemo to optimize O(Days * Tasks) mapping
+  const tasksByDay = React.useMemo(() => {
+    const map = new Map<number, any[]>()
+    const currentYear = currentDate.getFullYear()
+    const currentMonth = currentDate.getMonth()
 
-    return tasks.filter(task => {
-      if (!task.dueDate) return false
+    const daysMeta = Array.from({ length: daysInMonth }, (_, i) => {
+      const day = i + 1
+      const date = new Date(currentYear, currentMonth, day)
+      date.setHours(0, 0, 0, 0)
+      return {
+        day,
+        time: date.getTime(),
+        dayOfWeek: date.getDay()
+      }
+    })
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      map.set(day, [])
+    }
+
+    tasks.forEach(task => {
+      if (!task.dueDate) return
       const taskDate = new Date(task.dueDate)
       taskDate.setHours(0, 0, 0, 0)
 
-      if (targetDate < taskDate) return false // Doesn't start until dueDate
+      const taskTime = taskDate.getTime()
+      const taskDayOfMonth = taskDate.getDate()
+      const taskDayOfWeek = taskDate.getDay()
 
       if (task.recurrence === "NONE") {
-        return targetDate.getTime() === taskDate.getTime()
+        if (taskDate.getFullYear() === currentYear && taskDate.getMonth() === currentMonth) {
+          map.get(taskDayOfMonth)?.push(task)
+        }
+      } else if (task.recurrence === "DAILY") {
+        for (let i = 0; i < daysInMonth; i++) {
+          const meta = daysMeta[i]
+          if (meta.time >= taskTime) {
+            map.get(meta.day)?.push(task)
+          }
+        }
+      } else if (task.recurrence === "WEEKLY") {
+        for (let i = 0; i < daysInMonth; i++) {
+          const meta = daysMeta[i]
+          if (meta.time >= taskTime && meta.dayOfWeek === taskDayOfWeek) {
+            map.get(meta.day)?.push(task)
+          }
+        }
+      } else if (task.recurrence === "MONTHLY") {
+        if (taskDayOfMonth <= daysInMonth) {
+          const meta = daysMeta[taskDayOfMonth - 1]
+          if (meta.time >= taskTime) {
+            map.get(meta.day)?.push(task)
+          }
+        }
       }
-
-      if (task.recurrence === "DAILY") {
-        return true
-      }
-
-      if (task.recurrence === "WEEKLY") {
-        return targetDate.getDay() === taskDate.getDay()
-      }
-
-      if (task.recurrence === "MONTHLY") {
-        return targetDate.getDate() === taskDate.getDate()
-      }
-
-      return false
     })
-  }
+
+    return map
+  }, [tasks, currentDate, daysInMonth])
 
   if (isLoading) {
     return (
@@ -109,7 +138,7 @@ export function CalendarGrid() {
         ))}
         
         {days.map((day) => {
-          const dailyTasks = getDailyEvents(day)
+          const dailyTasks = tasksByDay.get(day) || []
           return (
             <div
               key={day}
