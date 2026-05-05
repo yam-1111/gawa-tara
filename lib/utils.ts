@@ -6,19 +6,12 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getURL(): string {
-  console.log("ENV DEBUG:", {
-    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
-    NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
-    NODE_ENV: process.env.NODE_ENV,
-  })
-
   const raw =
     process.env.NEXT_PUBLIC_SITE_URL ||
     process.env.NEXT_PUBLIC_VERCEL_URL ||
     "http://localhost:3000"
 
   const url = raw.startsWith("http") ? raw : `https://${raw}`
-  console.log("ENV URL:", url)
 
   return url.replace(/\/$/, "")
 }
