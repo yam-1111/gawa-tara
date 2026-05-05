@@ -26,7 +26,7 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = React.useState(false)
   const [isUploading, setIsUploading] = React.useState(false)
   const [isDeleting, setIsDeleting] = React.useState(false)
-  
+
   const fileInputRef = React.useRef<HTMLInputElement>(null)
 
   const fetchUser = async () => {
@@ -124,19 +124,19 @@ export default function SettingsPage() {
                   {user?.username?.[0] || <UserIcon className="size-16" />}
                 </AvatarFallback>
               </Avatar>
-              <button 
+              <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
                 className="absolute bottom-0 right-0 p-2 bg-primary text-primary-foreground rounded-full shadow-lg hover:scale-110 transition-transform disabled:opacity-50"
               >
                 {isUploading ? <Loader2 className="size-5 animate-spin" /> : <Camera className="size-5" />}
               </button>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                className="hidden" 
-                accept="image/*" 
-                onChange={handleImageUpload} 
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageUpload}
               />
             </div>
             <div className="text-center">
@@ -167,12 +167,12 @@ export default function SettingsPage() {
           </section>
 
           <section className="space-y-6">
-            <h3 className="text-2xl font-heading font-bold text-destructive border-b border-destructive/20 pb-2">Danger Zone</h3>
+            <h3 className="text-2xl font-heading font-bold text-destructive border-b border-red-300 pb-2">Danger Zone</h3>
             <Card className="p-6 border-destructive/20 bg-destructive/5 space-y-4">
               <p className="text-sm text-muted-foreground">
                 Once you delete your account, there is no going back. Please be certain.
               </p>
-              
+
               <Dialog>
                 <DialogTrigger asChild>
                   <Button variant="destructive" className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
@@ -192,17 +192,17 @@ export default function SettingsPage() {
                     <p className="text-sm font-medium">
                       To confirm, type <span className="font-bold">"{user?.username}"</span> below:
                     </p>
-                    <Input 
-                      value={confirmUsername} 
-                      onChange={(e) => setConfirmUsername(e.target.value)} 
+                    <Input
+                      value={confirmUsername}
+                      onChange={(e) => setConfirmUsername(e.target.value)}
                       placeholder="Type your username"
                     />
                   </div>
                   <DialogFooter>
-                    <Button 
-                      variant="destructive" 
+                    <Button
+                      variant="destructive"
                       disabled={confirmUsername !== user?.username || isDeleting}
-                      className="w-full"
+                      className="text-red-600 hover:text-red-600 w-full"
                       onClick={handleDeleteAccount}
                     >
                       {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

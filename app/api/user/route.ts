@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 export async function GET() {
   const supabase = await createClient()
@@ -84,23 +85,16 @@ export async function DELETE() {
     await supabase.storage.from('profile_picture').remove([fileName])
 
     // 2. Cascade delete from DB
-    // Prisma handles relations if configured, but let's be explicit if needed.
-    // Based on the schema, Task, ScheduleBlock, and Tag all relate to User.
-    // TaskTag relates to Task and Tag.
-    
-    await prisma.$transaction([
-      prisma.scheduleBlock.deleteMany({ where: { userId: authUser.id } }),
-      prisma.taskTag.deleteMany({ where: { task: { userId: authUser.id } } }),
-      prisma.task.deleteMany({ where: { userId: authUser.id } }),
-      prisma.tag.deleteMany({ where: { userId: authUser.id } }),
-      prisma.user.delete({ where: { id: authUser.id } })
-    ])
+    await prisma.user.delete({ where: { id: authUser.id } })
 
     // 3. Delete from Supabase Auth
-    const { error } = await supabase.auth.admin.deleteUser(authUser.id)
-    if (error) {
-      console.error("Auth delete error:", error)
-      // We still return success as DB is cleared
+    const adminSupabase = createAdminClient()
+    const { error: authError } = await adminSupabase.auth.admin.deleteUser(authUser.id)
+    if (authError) {
+      console.error("Auth delete error:", authError)
+      // If service role key is missing, this will fail. 
+      // We throw to ensure the user knows it failed.
+      throw new Error("Failed to delete user from Supabase Auth. Ensure SUPABASE_SERVICE_ROLE_KEY is set.")
     }
 
     return NextResponse.json({ success: true })

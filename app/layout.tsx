@@ -16,26 +16,47 @@ const manrope = Manrope({
 
 const baseUrl = process.env.NODE_ENV === 'production' ? 'https://gawa-tara-ctcc.vercel.app' : 'http://localhost:3000'
 
+
+
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
+
   title: "Gawa Tara? | Task Management",
   description: "Rooted warmth for your daily tasks.",
+
   openGraph: {
+    title: "Gawa Tara? | Task Management",
+    description: "Rooted warmth for your daily tasks.",
+    url: baseUrl,
+    siteName: "Gawa Tara?",
+    type: "website",
     images: [
       {
-        url: '/og-image.png',
+        url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: 'Grow your habits, achieve your goals',
+        alt: "Grow your habits, achieve your goals",
       },
     ],
   },
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon-32x32.png',
-    apple: '/apple-touch-icon.png',
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Gawa Tara? | Task Management",
+    description: "Rooted warmth for your daily tasks.",
+    images: ["/og-image.png"],
   },
-  manifest: '/site.webmanifest',
+
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
+
+  manifest: "/site.webmanifest",
 }
 
 import { ThemeProvider } from "@/components/theme-provider";

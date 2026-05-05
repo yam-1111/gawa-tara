@@ -70,7 +70,7 @@ model Task {
   recurrenceEnd DateTime?
 
   userId        String
-  user          User     @relation(fields: [userId], references: [id])
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   tags          TaskTag[]
   blocks        ScheduleBlock[]
@@ -89,8 +89,8 @@ model ScheduleBlock {
   taskId    String
   userId    String
 
-  task      Task @relation(fields: [taskId], references: [id])
-  user      User @relation(fields: [userId], references: [id])
+  task      Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 }
@@ -101,7 +101,7 @@ model Tag {
   color    String
 
   userId   String
-  user     User @relation(fields: [userId], references: [id])
+  user     User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   tasks    TaskTag[]
 }
@@ -110,8 +110,8 @@ model TaskTag {
   taskId String
   tagId  String
 
-  task Task @relation(fields: [taskId], references: [id])
-  tag  Tag  @relation(fields: [tagId], references: [id])
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([taskId, tagId])
 }
@@ -125,7 +125,7 @@ model DailyCheckin {
   focus     Int
   stress    Int
 
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
