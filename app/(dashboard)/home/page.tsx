@@ -160,14 +160,46 @@ export default function HomePage() {
 
   const today = new Date().toDateString()
 
-  // Filter active tasks
-  let habitTasks = rawTasks.filter(t => !t.isDeleted && t.recurrence !== "NONE")
-  let activeTasks = rawTasks.filter(t => !t.isComplete && !t.isDeleted && t.recurrence === "NONE")
+  // Consolidate multiple O(N) array scans into a single O(N) pass
+  const stats = React.useMemo(() => {
+    return rawTasks.reduce(
+      (acc, t) => {
+        if (!t.isDeleted) {
+          if (t.recurrence !== "NONE") {
+            acc.habitTasks.push(t)
+          } else if (!t.isComplete) {
+            acc.activeTasks.push(t)
+            if (t.priority === "DO") {
+              acc.totalCriticalTasks++
+            }
+          } else if (t.priority === "DO") {
+            acc.totalCriticalTasks++
+            acc.completedCriticalTasks++
+          }
+        }
 
+        if (t.isComplete) {
+          if (new Date(t.updatedAt).toDateString() === today) {
+            acc.completedToday++
+          }
+        }
 
-  // Filter DO task only to count for Critical Tasks Progress
-  const totalCriticalTasks = activeTasks.filter(t => t.priority === "DO").length + rawTasks.filter(t => t.priority === "DO" && t.isComplete && !t.isDeleted && t.recurrence === "NONE").length;
-  const completedCriticalTasks = rawTasks.filter(t => t.priority === "DO" && t.isComplete && !t.isDeleted && t.recurrence === "NONE").length;
+        return acc
+      },
+      {
+        habitTasks: [] as typeof rawTasks,
+        activeTasks: [] as typeof rawTasks,
+        totalCriticalTasks: 0,
+        completedCriticalTasks: 0,
+        completedToday: 0,
+      }
+    )
+  }, [rawTasks, today])
+
+  const habitTasks = stats.habitTasks
+  let activeTasks = stats.activeTasks
+  const totalCriticalTasks = stats.totalCriticalTasks
+  const completedCriticalTasks = stats.completedCriticalTasks
 
   // Apply adaptation layer logic based on checkin data
   let mode = "normal"
@@ -217,10 +249,7 @@ export default function HomePage() {
   })
 
   // Completed tasks TODAY
-  const completedToday = rawTasks.filter(t =>
-    t.isComplete &&
-    new Date(t.updatedAt).toDateString() === today
-  ).length
+  const completedToday = stats.completedToday
 
   // Total tasks for progress = active + completed today
   const totalTasks = activeTasks.length + completedToday
